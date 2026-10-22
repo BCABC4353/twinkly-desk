@@ -1,7 +1,7 @@
 {
   "name": "twinkly-desk",
   "productName": "Twinkly Desk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Desktop controller for Twinkly light sets",
   "main": "src/main.js",
   "author": "BC-ABC",

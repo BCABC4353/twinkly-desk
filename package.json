@@ -1,0 +1,21 @@
+{
+  "name": "twinkly-desk",
+  "productName": "Twinkly Desk",
+  "version": "0.1.0",
+  "description": "Desktop controller for Twinkly light sets",
+  "main": "src/main.js",
+  "author": "BC-ABC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "electron .",
+    "package:win": "electron-builder --win --publish never",
+    "dist": "electron-builder --win --publish never"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  }
+}

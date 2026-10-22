@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build-output/
+*.log
+.electron-builder-cache/
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

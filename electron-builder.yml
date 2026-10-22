@@ -1,0 +1,37 @@
+appId: com.bcabc.twinkly-desk
+productName: Twinkly Desk
+copyright: Copyright 2026 BC-ABC
+
+publish: null
+
+directories:
+  output: build-output
+  buildResources: assets
+
+files:
+  - src/**/*
+  - assets/**/*
+  - package.json
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  icon: assets/icon.png
+  artifactName: Twinkly-Desk-${version}-Windows-Setup.${ext}
+  verifyUpdateCodeSignature: false
+
+portable:
+  artifactName: Twinkly-Desk-${version}-Windows-Portable.${ext}
+
+nsis:
+  oneClick: true
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true

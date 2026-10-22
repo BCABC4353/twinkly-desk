@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:">
+<title>Twinkly Desk</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <div id="head">
+    <div id="headLeft">
+      <b id="title">Twinkly Desk</b>
+      <span id="summary" class="dim">no devices yet</span>
+      <span id="liveTag" class="tag" hidden>LIVE</span>
+      <span id="nextTag" class="dim"></span>
+    </div>
+    <div id="tools">
+      <div class="seg" id="toolSeg">
+        <button data-tool="view" class="on">View</button>
+        <button data-tool="arrange">Arrange sets</button>
+        <button data-tool="leds">Edit LEDs</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="showIdx"> numbers</label>
+      <label class="chk"><input type="checkbox" id="idHover"> light LED under cursor</label>
+      <button id="btnFit">Fit</button>
+    </div>
+  </div>
+  <div id="canvasWrap"><canvas id="cv"></canvas><div id="tip"></div><div id="hint"></div></div>
+  <div id="status"></div>
+</div>
+
+<aside id="side">
+  <div id="tabs">
+    <button data-tab="control" class="on">Control</button>
+    <button data-tab="live">Live</button>
+    <button data-tab="media">Media</button>
+    <button data-tab="presets">Presets</button>
+    <button data-tab="library">Stored</button>
+    <button data-tab="schedule">Schedule</button>
+    <button data-tab="devices">Sets</button>
+    <button data-tab="settings">Settings</button>
+  </div>
+
+  <section data-panel="control">
+    <h3>All sets</h3>
+    <div class="row seg" id="modeSeg">
+      <button data-mode="on">On</button>
+      <button data-mode="off">Off</button>
+      <button data-mode="effect">Effect</button>
+      <button data-mode="color">Color</button>
+      <button data-mode="movie">Movie</button>
+    </div>
+    <div class="row"><label>Brightness</label><input type="range" id="bri" min="0" max="100" value="100"><span class="val" id="briVal">100</span></div>
+    <h3>Built-in effect</h3>
+    <div class="row"><button id="fxPrev">&larr;</button><span id="fxLabel" class="grow center">effect 1</span><button id="fxNext">&rarr;</button></div>
+    <h3>Solid color</h3>
+    <div class="row"><input type="color" id="solid" value="#ffb060"><button id="btnSolid">Apply to all</button></div>
+    <h3>Per set</h3>
+    <div id="perSet"></div>
+  </section>
+
+  <section data-panel="live" hidden>
+    <div class="row"><label>Pattern</label><select id="pat" class="grow"></select></div>
+    <div class="row"><label>Colors</label><input type="color" id="c1" value="#ff5a00"><input type="color" id="c2" value="#0040ff"><span class="dim">base / highlight</span></div>
+    <div class="row"><label>Speed</label><input type="range" id="speed" min="0" max="2" step="0.01" value="0.3"><span class="val" id="speedVal">0.30</span></div>
+    <div class="row"><label>Scale</label><input type="range" id="scale" min="0.1" max="4" step="0.05" value="1"><span class="val" id="scaleVal">1.00</span></div>
+    <div class="row"><label>Angle</label><input type="range" id="angle" min="0" max="360" step="1" value="90"><span class="val" id="angleVal">90</span></div>
+    <div class="row"><label>Density</label><input type="range" id="density" min="0" max="1" step="0.01" value="0.5"><span class="val" id="densityVal">0.50</span></div>
+    <div class="row"><button id="btnLive" class="primary">Go live</button><button id="btnStopLive">Stop</button></div>
+    <p class="dim">Live streams frames from this PC to every set at once. Patterns run across the whole arrangement.</p>
+    <h3>Save as preset</h3>
+    <div class="row"><input type="text" id="presetName" placeholder="Preset name" class="grow"><button id="btnSavePreset" class="primary">Save</button></div>
+    <h3>Store on the lights as a movie</h3>
+    <div class="row"><label>Title</label><input type="text" id="mvTitle" value="Desk pattern" class="grow"></div>
+    <div class="row"><label>Seconds</label><input type="number" id="mvSec" value="20" min="1" max="400"></div>
+    <div class="row"><button id="btnSaveMovie" class="primary">Upload to all sets</button><button id="btnDelMovies">Delete all movies</button></div>
+    <p class="dim" id="mvInfo">Plays without this PC at the device frame rate. Each set gets its own copy.</p>
+  </section>
+
+  <section data-panel="media" hidden>
+    <div id="mDrop">Drop a GIF, image or video here and it plays on the lights<br><span class="dim">or click to choose a file</span></div>
+    <input type="file" id="mFile" accept="image/*,video/*" hidden>
+    <canvas id="mPreview" width="320" height="200"></canvas>
+    <p class="dim" id="mInfo">Nothing loaded yet.</p>
+    <div class="row"><label>Fit</label><select id="mFit"><option value="cover">Cover (crop to fill)</option><option value="fit">Fit (letterbox)</option><option value="stretch">Stretch</option></select><label class="chk"><input type="checkbox" id="mFlip"> flip vertical</label></div>
+    <div class="row"><label>Gamma</label><input type="range" id="mGamma" min="1" max="3" step="0.05" value="2.2"><span class="val" id="mGammaVal">2.20</span></div>
+    <div class="row"><label>Saturation</label><input type="range" id="mSat" min="0" max="2.5" step="0.05" value="1.3"><span class="val" id="mSatVal">1.30</span></div>
+    <div class="row"><label>Brightness</label><input type="range" id="mBright" min="0.2" max="2" step="0.05" value="1"><span class="val" id="mBrightVal">1.00</span></div>
+    <div class="row"><label>Speed</label><input type="range" id="mSpeed" min="0.25" max="4" step="0.05" value="1"><span class="val" id="mSpeedVal">1.00</span></div>
+    <div class="row"><label>Max seconds</label><input type="number" id="mMaxSec" value="30" min="1" max="400"></div>
+    <h3>Scrolling text</h3>
+    <div class="row"><input type="text" id="tMsg" placeholder="MERRY CHRISTMAS" class="grow" maxlength="60"><button id="tShow" class="primary">Show</button></div>
+    <div class="row"><label>Colours</label><input type="color" id="tColor" value="#ffffff"><input type="color" id="tBg" value="#000000"><span class="dim">text / background</span></div>
+    <div class="row"><label>Letter width</label><input type="range" id="tWidth" min="1" max="6" step="0.5" value="3.5"><span class="val" id="tWidthVal">3.5</span></div>
+    <div class="row"><label>Letter height</label><input type="range" id="tHeight" min="1" max="2.5" step="0.5" value="2"><span class="val" id="tHeightVal">2</span></div>
+    <div class="row"><label>Speed</label><input type="range" id="tSpeed" min="4" max="60" step="1" value="20"><span class="val" id="tSpeedVal">20</span></div>
+    <div class="row"><label>Direction</label><select id="tDir"><option value="left">right to left</option><option value="right">left to right</option></select></div>
+    <p class="dim">Letters, digits and basic punctuation, plus ♥ and ★. Width is in picture pixels per letter pixel; raise it until a letter is about five bulbs wide.</p>
+    <div class="row"><button id="mStop">Stop</button><button id="mPlay" disabled>Play again</button></div>
+    <p class="dim">Whatever is loaded here is on the lights, and every change above updates them at once. The dots and the thumbnail show exactly what the strings are showing. Stop hands the lights back to their own effect or movie.</p>
+    <h3>Keep it after the PC is off</h3>
+    <div class="row"><label>Name</label><input type="text" id="mTitle" placeholder="defaults to the file name" class="grow"></div>
+    <div class="row"><button id="mUpload" class="primary" disabled>Keep on the lights</button><button id="mPreset" disabled>Save as preset</button></div>
+    <p class="dim" id="mCap"></p>
+    <p class="dim">Keep on the lights stores a copy in each string's own memory so it plays without this PC. Save as preset keeps it in this app for the Schedule tab.</p>
+  </section>
+
+  <section data-panel="presets" hidden>
+    <div id="presetList"></div>
+    <p class="dim">Save a preset from the Live tab. Apply starts it live on all sets.</p>
+  </section>
+
+  <section data-panel="library" hidden>
+    <h3>Stored on the strings</h3>
+    <div id="libList"><p class="dim">Loading...</p></div>
+    <div class="row"><button id="libRefresh">Refresh</button><button id="libDeleteAll" class="danger">Delete all stored movies</button></div>
+    <p class="dim" id="libCap"></p>
+    <h3>Playlist</h3>
+    <p class="dim">Runs on the strings themselves, in order, looping, with no PC. Each entry needs to be stored on every set.</p>
+    <div id="plList"></div>
+    <div class="row"><select id="plAdd"></select><input type="number" id="plSecs" value="60" min="5" max="3600"><span class="dim">seconds</span><button id="plAddBtn">Add</button></div>
+    <div class="row"><button id="plPlay" class="primary">Play playlist on the lights</button><button id="plStop">Back to single movie</button></div>
+    <p class="dim" id="plInfo"></p>
+  </section>
+
+  <section data-panel="schedule" hidden>
+    <div id="schedList"></div>
+    <div class="row"><button id="btnAddSched">Add entry</button><button id="btnSaveSched" class="primary">Save schedule</button></div>
+    <p class="dim">The schedule only runs while Twinkly Desk is running. Keep it in the tray and enable Open at login in Settings.</p>
+    <p class="dim" id="schedNext"></p>
+  </section>
+
+  <section data-panel="devices" hidden>
+    <div class="row"><select id="devList" class="grow"></select><button id="btnScan">Scan</button></div>
+    <div class="row"><input type="text" id="devIp" placeholder="or type an IP" class="grow"><button id="btnAdd" class="primary">Add set</button></div>
+    <div class="row"><label>Units</label><select id="units"><option value="in">inches</option><option value="cm">centimeters</option><option value="ft">feet</option></select></div>
+    <div id="devCards"></div>
+    <p class="dim">Position and size are in your chosen units. Drag sets on the canvas in Arrange mode, or type exact values here.</p>
+  </section>
+
+  <section data-panel="settings" hidden>
+    <div class="row"><label class="chk"><input type="checkbox" id="keepRunning"> Keep running in the tray when the window closes</label></div>
+    <div class="row"><label class="chk"><input type="checkbox" id="openAtLogin"> Open at login</label></div>
+    <div class="row"><label class="chk"><input type="checkbox" id="startMinimized"> Start minimized to tray</label></div>
+    <h3>Live streaming</h3>
+    <div class="row"><label>Frames sent per second</label><select id="streamHz"><option value="8">8</option><option value="10">10</option><option value="13">13</option><option value="20">20</option><option value="30">30</option></select></div>
+    <p class="dim">Applies at once, even mid-stream. The strings refresh about 13 times a second on their own. If a live animation freezes and jumps, try a lower number; if it looks jerky but never freezes, try a higher one. Stored movies are not affected.</p>
+    <h3>Log</h3>
+    <pre id="log"></pre>
+  </section>
+</aside>
+<script src="renderer.js"></script>
+<script src="media.js"></script>
+<script src="text.js"></script>
+<script src="library.js"></script>
+</body>
+</html>

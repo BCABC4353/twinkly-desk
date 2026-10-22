@@ -1,0 +1,100 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump: patch = small fix, minor = new feature, major = big change'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+
+concurrency:
+  group: build-and-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Bump version, commit and tag
+        id: bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          new=$(npm version ${{ inputs.bump }} --no-git-tag-version)
+          echo "version=${new#v}" >> "$GITHUB_OUTPUT"
+          git add package.json package-lock.json
+          git commit -m "release ${new}"
+          git tag "${new}"
+          git push origin main
+          git push origin "${new}"
+
+  build-windows:
+    needs: version
+    runs-on: windows-latest
+    steps:
+      - name: Checkout the new version
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.version.outputs.version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Syntax check
+        run: |
+          Get-ChildItem -Path src -Recurse -Filter *.js | ForEach-Object { node --check $_.FullName; if ($LASTEXITCODE -ne 0) { exit 1 } }
+      - name: Build installer and portable exe
+        run: npm run package:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Windows builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-builds
+          path: |
+            build-output/*.exe
+            build-output/*.blockmap
+          retention-days: 30
+
+  release:
+    needs: [version, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Windows builds
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-builds
+          path: ./artifacts
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          files: ./artifacts/*
+          generate_release_notes: true
+          draft: false
+          make_latest: true
